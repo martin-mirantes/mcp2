@@ -8,7 +8,9 @@ import datetime
 if TYPE_CHECKING:
     from .modulo import Modulo
     from .pavimento import Pavimento
-    from .local import ( # Importa las clases específicas que se relacionan con Bloco
+    # Importa as classes específicas de Local que se relacionam com Bloco
+    # É crucial que estas classes estejam definidas corretamente em local.py
+    from .local import (
         LocalAreaComumExternaBloco,
         LocalAreaComumFachadaBloco,
         LocalAreaComumInternaBloco
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
 
 class Bloco(SQLModel, table=True):
     """Representa um bloco dentro de um módulo."""
-    # __tablename__ = 'blocos'
+    # __tablename__ = 'blocos' # Inferido
 
     # Constraints multi-coluna
     __table_args__ = (
@@ -39,17 +41,18 @@ class Bloco(SQLModel, table=True):
         nullable=False,
         description="ID do módulo ao qual pertence (FK, NOT NULL)."
     )
-    # O dump não mostrava created_at, mas vamos adicionar por consistência
     created_at: Optional[datetime.datetime] = Field(
         default=None,
         sa_column=sa.Column(sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         description="Timestamp de criação."
     )
 
-    # Relacionamentos
+    # --- Relacionamentos ---
+    # Relação com Modulo (pai)
     modulo: "Modulo" = Relationship(back_populates="blocos")
+    # Relação com Pavimentos (filhos)
     pavimentos: List["Pavimento"] = Relationship(back_populates="bloco")
-    # Relacionamentos com os tipos de locais específicos
+    # Relações com os tipos de locais específicos (filhos)
     locais_area_externa: List["LocalAreaComumExternaBloco"] = Relationship(back_populates="bloco")
     locais_fachada: List["LocalAreaComumFachadaBloco"] = Relationship(back_populates="bloco")
     locais_area_interna: List["LocalAreaComumInternaBloco"] = Relationship(back_populates="bloco")

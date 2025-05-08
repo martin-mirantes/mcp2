@@ -7,7 +7,7 @@ from decimal import Decimal
 
 # Adelanta declaraciones
 if TYPE_CHECKING:
-    from .obra import Obra
+    from .obra import Obras
     from .tarefa_responsavel import TarefaResponsaveis # Importa el modelo de enlace
 
 class Responsavel(SQLModel, table=True):
@@ -27,7 +27,7 @@ class Responsavel(SQLModel, table=True):
     )
     nome: str = Field(
         sa_column=sa.Column(sa.Text, nullable=False),
-        unique=True, # Já coberto pelo UniqueConstraint, mas bom ter aqui também
+        # unique=True, # <<-- REMOVIDO daqui (já está em __table_args__)
         description="Nome completo do responsável (NOT NULL, UNIQUE)."
     )
     matricula: Optional[Decimal] = Field(
@@ -64,7 +64,7 @@ class Responsavel(SQLModel, table=True):
     # created_at: Optional[datetime.datetime] = Field(...)
 
     # Relacionamentos
-    obra: Optional["Obra"] = Relationship(back_populates="responsaveis")
+    obra: Optional["Obras"] = Relationship(back_populates="responsaveis")
     # Relação com a tabela de junção TarefaResponsaveis
     tarefas_atribuidas: List["TarefaResponsaveis"] = Relationship(back_populates="responsavel")
 
