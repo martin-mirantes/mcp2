@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib60/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtualenv
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Databases
+*.sqlite3
+*.sqlite3-journal
+
+# IDEs and editors
+.idea/
+# .vscode/  (Comentado por si prefieres versionar la configuración de VSCode)
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Logs and Cache
+*.log
+.cache/
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Secrets (example, adjust as needed)
+# local_settings.py
+# secrets.json
+
+.roo/
