@@ -1,0 +1,1 @@
+el servidor de test se ejecuta con ./run_dev.sh por un problema de PYTHONPATH
