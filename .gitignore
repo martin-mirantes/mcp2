@@ -62,3 +62,5 @@ htmlcov/
 # secrets.json
 
 .roo/
+uv.lock
+.gitignore
