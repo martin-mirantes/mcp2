@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field as PydanticField # Para modelos de API/JSO
 from app.core.config import settings
 from app.db.session import get_session # Para obter a sessão da DB
 # Importa seus modelos SQLModel
-from app.models.all_models import Obra, Pessoa # Adicionando Pessoa
+from app.models.all_models import Obra, Pessoa
 
 # --- Modelos Pydantic para validação dos dados JSON ---
 class PessoaObraAssociada(BaseModel):
@@ -34,11 +34,12 @@ class PessoaRead(BaseModel):
     created_at: str
 
 class ObraDados(BaseModel):
-    nome: str
+    nome: str # Mantido como 'nome' para consistência interna do modelo Pydantic
     codigo: Optional[str] = None
     status: Optional[str] = None
+    # Adicione outros campos que espera no JSON de Obra
 
-class ObraCriar(ObraDados):
+class ObraCriar(ObraDados): # Este modelo será usado como parâmetro do Tool
     pass
 
 class ObraRead(BaseModel):
@@ -55,58 +56,53 @@ mcp = FastMCP(
 # --- Tools e Resources para Obras ---
 @mcp.tool()
 def criar_obra(
-    nome_obra: str,
-    codigo: Optional[str] = None,
-    status: Optional[str] = None,
+    dados_obra: ObraCriar, # <<-- MUDANÇA: Agora aceita o modelo Pydantic diretamente
     ctx: Context = None
 ) -> ObraRead:
     """
     Cria uma nova obra na base de dados.
-    O campo 'nome' da obra é obrigatório.
+    Os dados da obra são fornecidos como um objeto JSON que corresponde ao schema de ObraCriar.
+    O campo 'nome' dentro de dados_obra é obrigatório.
     """
     if ctx:
-        ctx.info(f"Tentando criar obra: {nome_obra}")
+        ctx.info(f"Tentando criar obra: {dados_obra.nome}")
 
-    json_data = ObraCriar(nome=nome_obra, codigo=codigo, status=status).model_dump(exclude_none=True)
+    # model_dump() converte o modelo Pydantic para um dict
+    # exclude_none=True remove campos que não foram enviados (são None)
+    json_data_para_db = dados_obra.model_dump(exclude_none=True)
 
     db: Session = next(get_session())
     try:
-        nova_obra = Obra(dados=json_data)
+        nova_obra = Obra(dados=json_data_para_db)
         db.add(nova_obra)
         db.commit()
         db.refresh(nova_obra)
         if ctx:
-            ctx.info(f"Obra '{json_data.get('nome')}' criada com ID: {nova_obra.id}")
+            ctx.info(f"Obra '{json_data_para_db.get('nome')}' criada com ID: {nova_obra.id}")
+        # Ao retornar, parseamos o dicionário 'dados' de volta para ObraDados para consistência
         return ObraRead(id=nova_obra.id, dados=ObraDados(**nova_obra.dados), created_at=str(nova_obra.created_at))
     except Exception as e:
         db.rollback()
         if ctx:
-            ctx.error(f"Erro ao criar obra {nome_obra}: {e}")
+            ctx.error(f"Erro ao criar obra {dados_obra.nome}: {e}")
         raise ValueError(f"Não foi possível criar a obra: {e}")
     finally:
         db.close()
 
-# REFACTORIZADO: De Tool para Resource Template
 @mcp.resource("obras://id/{obra_id}")
 def obter_obra_por_id(obra_id: int, ctx: Context = None) -> Optional[ObraRead]:
     """Obtém os detalhes de uma obra pelo seu ID."""
-    # A lógica interna da função permanece a mesma
     db: Session = next(get_session())
     try:
-        # obra_id é convertido para int automaticamente pelo FastMCP a partir da URI
         obra_db = db.get(Obra, obra_id)
         if obra_db:
             if ctx: ctx.info(f"Obra encontrada: ID {obra_id}")
             return ObraRead(id=obra_db.id, dados=ObraDados(**obra_db.dados), created_at=str(obra_db.created_at))
         else:
             if ctx: ctx.warning(f"Obra com ID {obra_id} não encontrada.")
-            # Para Resources, retornar None ou uma lista vazia é comum para "não encontrado"
-            # Ou pode-se levantar uma exceção específica que o cliente MCP possa interpretar.
-            # Por simplicidade, retornamos None, o cliente MCP verá um resultado vazio.
             return None
     except Exception as e:
         if ctx: ctx.error(f"Erro ao obter obra {obra_id}: {e}")
-        # Em um Resource, levantar um erro pode ser traduzido para um erro MCP.
         raise ValueError(f"Erro ao buscar obra: {e}")
     finally:
         db.close()
@@ -139,7 +135,7 @@ def criar_pessoa(
 ) -> PessoaRead:
     """
     Cria uma nova pessoa na base de dados.
-    Os dados da pessoa são fornecidos como um objeto JSON.
+    Os dados da pessoa são fornecidos como um objeto JSON que corresponde ao schema de PessoaCriar.
     """
     if ctx:
         ctx.info(f"Tentando criar pessoa: {dados_pessoa.nome_completo}")
@@ -163,14 +159,11 @@ def criar_pessoa(
     finally:
         db.close()
 
-# REFACTORIZADO: De Tool para Resource Template
 @mcp.resource("pessoas://id/{pessoa_id}")
 def obter_pessoa_por_id(pessoa_id: int, ctx: Context = None) -> Optional[PessoaRead]:
     """Obtém os detalhes de uma pessoa pelo seu ID."""
-    # A lógica interna da função permanece a mesma
     db: Session = next(get_session())
     try:
-        # pessoa_id é convertido para int automaticamente pelo FastMCP a partir da URI
         pessoa_db = db.get(Pessoa, pessoa_id)
         if pessoa_db:
             if ctx: ctx.info(f"Pessoa encontrada: ID {pessoa_id}")
@@ -229,8 +222,16 @@ def get_server_info(ctx: Context = None) -> dict:
      }
 
 # --- Punto de entrada para ejecutar el servidor ---
+# --- Punto de entrada para ejecutar el servidor ---
 if __name__ == "__main__":
-    print(f"Iniciando servidor FastMCP '{mcp.name}'...")
-    # Para testes locais, pode ser útil rodar com HTTP
-    # mcp.run(transport="streamable-http", host="127.0.0.1", port=8000, path="/mcp")
-    mcp.run() # Default para STDIO
+    # Para permitir escolher o transporte via argumento de linha de comando
+    import sys
+    transport_mode = "stdio" # Default
+    port = 8000 # Default para HTTP
+    if len(sys.argv) > 1 and sys.argv[1] == "http":
+        transport_mode = "streamable-http"
+        print(f"Iniciando servidor FastMCP '{mcp.name}' em modo Streamable HTTP na porta {port}...")
+        mcp.run(transport=transport_mode, host="0.0.0.0", port=port, path="/mcp")
+    else:
+        print(f"Iniciando servidor FastMCP '{mcp.name}' em modo STDIO...")
+        mcp.run(transport=transport_mode) # Default para STDIO
