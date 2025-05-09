@@ -14,10 +14,10 @@ from alembic import context
 project_dir = Path(__file__).parent.parent.resolve()
 env_path = project_dir / ".env"
 if env_path.is_file():
-    print(f"Cargando variables de entorno desde: {env_path}")
+    #print(f"Cargando variables de entorno desde: {env_path}")
     load_dotenv(dotenv_path=env_path)
-else:
-    print(f"Advertencia: Archivo .env no encontrado en {env_path}")
+#else:
+   #print(f"Advertencia: Archivo .env no encontrado en {env_path}")
 # --- FIN MODIFICACIÓN .ENV ---
 
 config = context.config
@@ -28,19 +28,19 @@ if config.config_file_name is not None:
 # --- MODIFICACIÓN PARA SQLMODEL E IMPORTS INDIVIDUAIS ---
 # Adiciona o diretório raiz do projeto ao sys.path
 if str(project_dir) not in sys.path:
-     print(f"Adicionando {project_dir} ao sys.path")
+    #print(f"Adicionando {project_dir} ao sys.path")
      sys.path.insert(0, str(project_dir)) # <<-- Indentación corregida aquí
 
 from sqlmodel import SQLModel # Importa SQLModel
 
 # Importa o módulo único que contém todos os modelos
 try:
-    print("Importando modelos de app.models.all_models...")
+   #print("Importando modelos de app.models.all_models...")
     from app.models import all_models # Importa o arquivo consolidado
-    print("Modelos SQLModel importados com sucesso.")
+   #print("Modelos SQLModel importados com sucesso.")
 except ImportError as e:
-    print(f"Erro ao importar modelos de app.models.all_models: {e}")
-    print("Verifique o caminho e o arquivo __init__.py em app/models.")
+   #print(f"Erro ao importar modelos de app.models.all_models: {e}")
+   #print("Verifique o caminho e o arquivo __init__.py em app/models.")
     raise e
 
 # Define os metadados dos seus modelos SQLModel como o alvo para Alembic

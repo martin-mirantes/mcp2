@@ -2,7 +2,7 @@ from sqlmodel import create_engine, SQLModel, Session
 from app.core.config import settings # Importa la configuración
 
 # echo=True muestra las querys SQL (útil en desarrollo, quitar en producción)
-engine = create_engine(settings.DATABASE_URL, echo=True)
+engine = create_engine(settings.DATABASE_URL, echo=False)
 
 def create_db_and_tables():
     """

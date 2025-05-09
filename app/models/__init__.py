@@ -1,10 +1,7 @@
-# app/models/__init__.py (Ultra-Simplificado)
+# app/models/__init__.py (Ultra-Simplificado - Sin Prints de Debug)
 
-print("Importando modelos de app.models.all_models...")
 # Importa tudo do arquivo consolidado
 from .all_models import Obra, Pessoa, Tarefa # Apenas os modelos que agora existem
-
-print("Importações concluídas.")
 
 # Lista __all__ refletindo os modelos atuais
 __all__ = [
