@@ -1,14 +1,12 @@
-# app/models/__init__.py
-from .all_models import *
+# app/models/__init__.py (Ultra-Simplificado)
 
-# O __all__ pode ser definido aqui ou no all_models.py
-# Se definido em all_models.py, esta linha não é estritamente necessária
-# mas pode ser útil para clareza ou se você quiser re-exportar seletivamente.
+print("Importando modelos de app.models.all_models...")
+# Importa tudo do arquivo consolidado
+from .all_models import Obra, Pessoa, Tarefa # Apenas os modelos que agora existem
+
+print("Importações concluídas.")
+
+# Lista __all__ refletindo os modelos atuais
 __all__ = [
-    "TipoLocal", "Obra", "Modulo", "Bloco", "Pavimento", "Apartamentos",
-    "Locais", "LocalApartamento", "LocalAmbienteInternoApartamento",
-    "LocalAreaComumExternaBloco", "LocalAreaComumFachadaBloco",
-    "LocalAreaComumInternaBloco", "LocalAreaComumModulo", "LocalRua",
-    "Responsavel", "TiposTarefa", "PrecosTarefaLocal", "Tarefa",
-    "TarefaResponsaveis"
+    "Obra", "Pessoa", "Tarefa",
 ]
